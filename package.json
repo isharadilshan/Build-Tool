@@ -1,0 +1,28 @@
+{
+  "name": "build-tool",
+  "version": "1.0.0",
+  "description": "This is custom build tool like find imports",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "@babel/core": "^7.6.2",
+    "@babel/parser": "^7.6.2",
+    "esprima": "^4.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isharadilshan/Build-Tool.git"
+  },
+  "author": "Ishara Dilshan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/isharadilshan/Build-Tool/issues"
+  },
+  "homepage": "https://github.com/isharadilshan/Build-Tool#readme"
+}
