@@ -44,3 +44,7 @@ test.prototype.two = function(){
 //     alert(request.status);
 //     response.innerHTML = request.responseText;
 // }
+
+class Auth{
+    
+}

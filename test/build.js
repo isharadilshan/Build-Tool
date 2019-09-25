@@ -1,9 +1,29 @@
-RECURSIVE_DEPTH = 3;
-FILE_PATH = '/Users/imadhushanka/Documents/Project-Build-Tool/common';
+COMMON_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/common';
+CO_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/custom-objects';
 
 const esprima = require('esprima');
 const fs = require('fs');
-var _ = require('lodash');
+const _ = require('lodash');
+const HashMap = require('hashmap');
+
+const commonArray = getFlatArray(COMMON_FILE_PATH);
+const commonTokens = getTokens(commonArray);
+const commonIdentifiers = getIdentifiers(commonTokens);
+const commonUniqueIdentifiers = getUniqueIdentifiers(commonIdentifiers);
+
+const customObjectArray = getFlatArray(CO_FILE_PATH);
+const coTokens = getTokens(customObjectArray);
+const coIdentifiers = getIdentifiers(coTokens);
+const coUniqueIdentifiers = getUniqueIdentifiers(coIdentifiers);
+
+const intersectionArray = getIntersection(commonUniqueIdentifiers,coUniqueIdentifiers);
+
+// console.log("Common Unique Identifiers",commonUniqueIdentifiers);
+// console.log("CO Unique Identifiers",coUniqueIdentifiers);
+
+console.log(intersectionArray);
+
+
 
 function getFiles(dir) {
 
@@ -12,6 +32,7 @@ function getFiles(dir) {
 
     // process each checking directories and saving files
     return all.map(file => {
+        // console.log(file);
         // am I a directory?
         if (fs.statSync(`${dir}/${file}`).isDirectory()) {
             // recursively scan me for my files
@@ -20,49 +41,76 @@ function getFiles(dir) {
         // could be something else here!!!
         return `${dir}/${file}`;  
     });
+
+}
+
+function getFlatArray(filePath){
+
+    var arr = getFiles(filePath);
+    //return flat array
+    return _.flattenDeep(arr);
+
+}
+
+function getTokens(flatArray){
+
+    var tokens = [];
+
+    flatArray.forEach(function(file){
+    
+        const content = fs.readFileSync(file,'utf-8');
+        tokens.push(esprima.tokenize(content));
+
+    });
+
+    return _.flattenDeep(tokens);//return flat array with tokens
+}
+
+function getIdentifiers(tokens){
+
+    var filteredTokens = [];
+
+    filteredTokens = tokens.filter(token => {
+        return token.type === 'Identifier' && !isReserved(token.value);
+    });
+    return filteredTokens;
+}
+
+function getUniqueIdentifiers(filteredTokens){
+
+    const uniqueIdentifiers = _.uniqBy(filteredTokens,function(obj){
+        return obj.value;
+    });
+    return uniqueIdentifiers;
+}
+
+function getIntersection(arr1, arr2){
+
+    var intersectionArray = [];
+    intersectionArray = _.intersectionBy(arr1,arr2,'value');
+    return intersectionArray;
+}
+
+function getHashMap(uniqueIdentifiers){
+
+    const hashmap = new HashMap();
+    uniqueIdentifiers.forEach(token => {
+        hashmap.set(token.value,file);
+    });
+    return hashmap;
+}
+
+function isReserved(tokenValue){
+    //Implement array and find or implement filter
+    if(tokenValue == 'console'){
+        return true;
+    }
 }
 
 
-arr = getFiles(FILE_PATH);
-// console.log(JSON.stringify(arr));
+// const intersection_arr = _.intersectionBy(common_unique_filtered_tokens,co_unique_filtered_tokens,'value');
 
-flat_array = _.flattenDeep(arr);
-
-
-flat_array.forEach(function(file) {
-    
-    const content = fs.readFileSync(file,'utf-8');
-
-    const tokens = [];
-    tokens.push(esprima.tokenize(content));
-    // console.log(tokens);
-    
-    console.log("BREAK");
-    const filtered_tokens = tokens[0].filter(token => {
-        return token.type === 'Identifier';
-    });
-
-    const unique_filtered_tokens = _.uniqBy(filtered_tokens,function(obj){
-        return obj.value;
-    });
-    console.log("FIL", unique_filtered_tokens);
-    
-    
-    // obj = JSON.parse(JSON.stringify(ast)); //now it an object
-    // json = JSON.stringify(obj); //convert it back to json
-    // console.log(file);
-
-    // var json = JSON.stringify(ast);
-
-    // fs.writeFile("declarations.json", json, (err) => {
-    //     if (err) {
-    //         console.error(err);
-    //         return;
-    //     };
-    //     console.log("File has been created");
-    // });
-});
-
+// console.log("Intersection Array",intersection_arr);
 
 
 

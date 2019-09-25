@@ -5,3 +5,6 @@ const ast = parser.parse(" import foo from 'bar'; ", {
 });
 
 console.log(ast.program.body[0]);
+
+class testTest{
+}
