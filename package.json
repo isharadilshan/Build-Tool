@@ -9,7 +9,8 @@
   "dependencies": {
     "@babel/core": "^7.6.2",
     "@babel/parser": "^7.6.2",
-    "esprima": "^4.0.1"
+    "esprima": "^4.0.1",
+    "lodash": "^4.17.15"
   },
   "devDependencies": {},
   "scripts": {

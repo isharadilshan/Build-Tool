@@ -1,17 +1,9 @@
 RECURSIVE_DEPTH = 3;
 FILE_PATH = '/Users/imadhushanka/Documents/Project-Build-Tool/common';
 
-const babelParser = require('@babel/parser');
 const esprima = require('esprima');
 const fs = require('fs');
-
-Object.defineProperty(Array.prototype, 'flat', {
-    value: function(depth = 1) {
-      return this.reduce(function (flat, toFlatten) {
-        return flat.concat((Array.isArray(toFlatten) && (depth>1)) ? toFlatten.flat(depth-1) : toFlatten);
-      }, []);
-    }
-});
+var _ = require('lodash');
 
 function getFiles(dir) {
 
@@ -30,37 +22,30 @@ function getFiles(dir) {
     });
 }
 
+
 arr = getFiles(FILE_PATH);
 // console.log(JSON.stringify(arr));
 
+flat_array = _.flattenDeep(arr);
 
-flat_array = arr.flat([RECURSIVE_DEPTH]);
-// console.log(arr.flat([RECURSIVE_DEPTH]));
 
 flat_array.forEach(function(file) {
     
     const content = fs.readFileSync(file,'utf-8');
-    // const ast = babelParser.parse(content,{
-    //     sourceType: 'module',
-    //     plugins: [
-    //         // enable jsx and flow syntax
-    //         "jsx",
-    //         "flow"
-    //     ]
-    // });
 
-    const functionNames = [];
     const tokens = [];
     tokens.push(esprima.tokenize(content));
     // console.log(tokens);
+    
     console.log("BREAK");
-    var filtered_tokens = tokens.filter(function(token){
-        return token.type == 'Identifier';
+    const filtered_tokens = tokens[0].filter(token => {
+        return token.type === 'Identifier';
     });
-    console.log(filtered_tokens);
 
-    esprima.tokenize(content);
-    // console.log(esprima.tokenize(content));
+    const unique_filtered_tokens = _.uniqBy(filtered_tokens,function(obj){
+        return obj.value;
+    });
+    console.log("FIL", unique_filtered_tokens);
     
     
     // obj = JSON.parse(JSON.stringify(ast)); //now it an object
@@ -77,3 +62,8 @@ flat_array.forEach(function(file) {
     //     console.log("File has been created");
     // });
 });
+
+
+
+
+//use intersection by in lodash to get the intersection between two object arrays
