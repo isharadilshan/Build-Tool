@@ -5,3 +5,5 @@ class testTest {
         return 'test';
     }
 }
+
+const Tokens = setTokens(publicArray);

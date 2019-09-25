@@ -7,3 +7,10 @@ function authenticateUser(user, password)
 
     return "Basic " + hash;
 }
+
+const publicTokens = getTokens(publicArray);
+
+
+class TEST{
+    
+}
