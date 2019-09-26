@@ -24,7 +24,7 @@ Facade.Behaviors.Page.onLoad(function () {
     picklistOperatorPicklist.push(
         new Facade.Prototypes.Data({
             value: Facade.Constants.Operator.NOT_IN,
-            label: "not in"
+            label: `not in ${QUESTIONNAIRE_TEMPLATES.VERSION_STATES.PUBLISH.value}`//what is the meaning
         })
     );
 });

@@ -1,15 +1,18 @@
-COMMON_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/common';
-CO_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/custom-objects';
+const COMMON_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/common';
+const CO_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/custom-objects';
+const RESERVED_IDENTIFIERS = ['console','log','return','require','prototype','slice','Facade'];
 
 const esprima = require('esprima');
 const fs = require('fs');
 const _ = require('lodash');
-const HashMap = require('hashmap');
+// const HashMap = require('hashmap');
 
 const commonArray = getFlatArray(COMMON_FILE_PATH);
-const commonTokens = getTokens(commonArray);
+const commonTokens = getTokensWithFilePath(commonArray);
 const commonIdentifiers = getIdentifiers(commonTokens);
 const commonUniqueIdentifiers = getUniqueIdentifiers(commonIdentifiers);
+const map = getMap(commonUniqueIdentifiers);
+// console.log(hashmap);
 
 const customObjectArray = getFlatArray(CO_FILE_PATH);
 const coTokens = getTokens(customObjectArray);
@@ -21,7 +24,7 @@ const intersectionArray = getIntersection(commonUniqueIdentifiers,coUniqueIdenti
 // console.log("Common Unique Identifiers",commonUniqueIdentifiers);
 // console.log("CO Unique Identifiers",coUniqueIdentifiers);
 
-console.log(intersectionArray);
+console.log("Intersection Array",intersectionArray);
 
 
 
@@ -59,19 +62,41 @@ function getTokens(flatArray){
     flatArray.forEach(function(file){
     
         const content = fs.readFileSync(file,'utf-8');
-        tokens.push(esprima.tokenize(content));
+        tokens.push(file,esprima.tokenize(content));
 
     });
-
     return _.flattenDeep(tokens);//return flat array with tokens
 }
 
-function getIdentifiers(tokens){
+function getTokensWithFilePath(flatArray){
+
+    var tokens = [];
+
+    flatArray.forEach(function(file){
+    
+        const content = fs.readFileSync(file,'utf-8');
+        tokens.push(file,esprima.tokenize(content));
+
+    });
+    const flatTokenArray = _.flattenDeep(tokens);
+
+    let filepath = undefined;
+    const tokensWithFilePath = flatTokenArray.map(el => {
+        if (typeof el === 'string') {
+          filepath = el;
+          return null;
+        }
+        return { ...el, filepath };
+      }).filter(el => el != null);
+    return tokensWithFilePath;//return tokens array with their corresponding file path
+}
+
+function getIdentifiers(tokensWithFilePath){
 
     var filteredTokens = [];
 
-    filteredTokens = tokens.filter(token => {
-        return token.type === 'Identifier' && !isReserved(token.value);
+    filteredTokens = tokensWithFilePath.filter(token => {
+        return token.type === 'Identifier' && !isReserved(token.value,RESERVED_IDENTIFIERS);//filter tokens without default identifiers
     });
     return filteredTokens;
 }
@@ -81,31 +106,47 @@ function getUniqueIdentifiers(filteredTokens){
     const uniqueIdentifiers = _.uniqBy(filteredTokens,function(obj){
         return obj.value;
     });
-    return uniqueIdentifiers;
+    return uniqueIdentifiers;//return unique identifiers
 }
 
 function getIntersection(arr1, arr2){
 
     var intersectionArray = [];
-    intersectionArray = _.intersectionBy(arr1,arr2,'value');
+    intersectionArray = _.intersectionBy(arr1,arr2,'value');//get the intersection only by considering the value
     return intersectionArray;
 }
 
-function getHashMap(uniqueIdentifiers){
+// function getHashMap(uniqueIdentifiers){
 
-    const hashmap = new HashMap();
+//     const hashmap = new HashMap();
+//     uniqueIdentifiers.forEach(token => {
+//         hashmap.set(token.value,token.filepath);
+//     });
+//     return hashmap;
+// }
+
+function getMap(uniqueIdentifiers){
+
+    const map = new Map();
     uniqueIdentifiers.forEach(token => {
-        hashmap.set(token.value,file);
+        map.set(token.value,token.filepath);
     });
-    return hashmap;
+    return map;
 }
 
-function isReserved(tokenValue){
-    //Implement array and find or implement filter
-    if(tokenValue == 'console'){
-        return true;
-    }
+function isReserved(tokenValue,reservedIdentifiers){  
+    return reservedIdentifiers.find(el => el === tokenValue);//return true 
+    // return reservedIdentifiers.indexOf(tokenValue) > -1;
 }
+
+function getFilePaths(map,intersecArray){
+    // intersecArray.forEach(obj => {
+    //     if(map.get(obj.))
+    // })
+}
+
+const hmap = new Map();
+
 
 
 // const intersection_arr = _.intersectionBy(common_unique_filtered_tokens,co_unique_filtered_tokens,'value');
