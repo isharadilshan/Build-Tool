@@ -1,18 +1,16 @@
 const COMMON_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/common';
 const CO_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/custom-objects';
 const RESERVED_IDENTIFIERS = ['console','log','return','require','prototype','slice','Facade'];
+const DESTINATION = '/Users/imadhushanka/Documents/Build-Tool/custom-objects/$object1/includes/';
 
 const esprima = require('esprima');
-const fs = require('fs');
+const fs = require('fs-extra');
 const _ = require('lodash');
-// const HashMap = require('hashmap');
 
 const commonArray = getFlatArray(COMMON_FILE_PATH);
 const commonTokens = getTokensWithFilePath(commonArray);
 const commonIdentifiers = getIdentifiers(commonTokens);
 const commonUniqueIdentifiers = getUniqueIdentifiers(commonIdentifiers);
-const map = getMap(commonUniqueIdentifiers);
-// console.log(hashmap);
 
 const customObjectArray = getFlatArray(CO_FILE_PATH);
 const coTokens = getTokens(customObjectArray);
@@ -23,8 +21,11 @@ const intersectionArray = getIntersection(commonUniqueIdentifiers,coUniqueIdenti
 
 // console.log("Common Unique Identifiers",commonUniqueIdentifiers);
 // console.log("CO Unique Identifiers",coUniqueIdentifiers);
+// console.log("Intersection Array",intersectionArray);
 
-console.log("Intersection Array",intersectionArray);
+const filePaths = getFilePaths(intersectionArray);
+// console.log(filePaths);
+copyFiles(filePaths,DESTINATION);
 
 
 
@@ -65,7 +66,8 @@ function getTokens(flatArray){
         tokens.push(file,esprima.tokenize(content));
 
     });
-    return _.flattenDeep(tokens);//return flat array with tokens
+    //return flat array with tokens
+    return _.flattenDeep(tokens);
 }
 
 function getTokensWithFilePath(flatArray){
@@ -88,7 +90,8 @@ function getTokensWithFilePath(flatArray){
         }
         return { ...el, filepath };
       }).filter(el => el != null);
-    return tokensWithFilePath;//return tokens array with their corresponding file path
+    //return tokens array with their corresponding file path
+    return tokensWithFilePath;
 }
 
 function getIdentifiers(tokensWithFilePath){
@@ -96,7 +99,8 @@ function getIdentifiers(tokensWithFilePath){
     var filteredTokens = [];
 
     filteredTokens = tokensWithFilePath.filter(token => {
-        return token.type === 'Identifier' && !isReserved(token.value,RESERVED_IDENTIFIERS);//filter tokens without default identifiers
+        //filter tokens without default identifiers
+        return token.type === 'Identifier' && !isReserved(token.value,RESERVED_IDENTIFIERS);
     });
     return filteredTokens;
 }
@@ -106,53 +110,40 @@ function getUniqueIdentifiers(filteredTokens){
     const uniqueIdentifiers = _.uniqBy(filteredTokens,function(obj){
         return obj.value;
     });
-    return uniqueIdentifiers;//return unique identifiers
+    //return unique identifiers
+    return uniqueIdentifiers;
 }
 
 function getIntersection(arr1, arr2){
 
     var intersectionArray = [];
-    intersectionArray = _.intersectionBy(arr1,arr2,'value');//get the intersection only by considering the value
+    //get the intersection only by considering the value
+    intersectionArray = _.intersectionBy(arr1,arr2,'value');
     return intersectionArray;
 }
 
-// function getHashMap(uniqueIdentifiers){
-
-//     const hashmap = new HashMap();
-//     uniqueIdentifiers.forEach(token => {
-//         hashmap.set(token.value,token.filepath);
-//     });
-//     return hashmap;
-// }
-
-function getMap(uniqueIdentifiers){
-
-    const map = new Map();
-    uniqueIdentifiers.forEach(token => {
-        map.set(token.value,token.filepath);
-    });
-    return map;
-}
-
 function isReserved(tokenValue,reservedIdentifiers){  
-    return reservedIdentifiers.find(el => el === tokenValue);//return true 
+    //return true if tokenValue equal with reserved identifier array
+    return reservedIdentifiers.find(el => el === tokenValue); 
     // return reservedIdentifiers.indexOf(tokenValue) > -1;
 }
 
-function getFilePaths(map,intersecArray){
-    // intersecArray.forEach(obj => {
-    //     if(map.get(obj.))
-    // })
+function getFilePaths(intersecArray){
+    const filepathArray = _.uniqBy(intersecArray,function(obj){
+        return obj.filepath;
+    });
+
+    var filepaths =[];
+    filepathArray.forEach(obj => {
+        filepaths.push(obj.filepath);
+    });
+    return filepaths;
 }
 
-const hmap = new Map();
+function copyFiles(filepaths,destination){
 
+    filepaths.forEach(file => {
+        fs.copy(file, destination+file.substring(file.indexOf('/common/')+8));
+    })
+}
 
-
-// const intersection_arr = _.intersectionBy(common_unique_filtered_tokens,co_unique_filtered_tokens,'value');
-
-// console.log("Intersection Array",intersection_arr);
-
-
-
-//use intersection by in lodash to get the intersection between two object arrays
