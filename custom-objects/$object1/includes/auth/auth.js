@@ -5,8 +5,6 @@ var passWord = "secretKey";
 var ttt = new testTest();
 var constant1 = {};
 
-const AUTH_TOKEN = "jdocibvu";
-
 constant1.something = {};
 
 constant1.something.some = {};
@@ -14,7 +12,7 @@ constant1.something.some = {};
 function test(){
 
 }
-testoo();
+
 test.prototype.one = function(){
 
 }

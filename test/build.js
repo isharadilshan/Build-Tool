@@ -10,7 +10,9 @@ const _ = require('lodash');
 const commonArray = getFlatArray(COMMON_FILE_PATH);
 const commonTokens = getTokensWithFilePath(commonArray);
 const commonIdentifiers = getIdentifiers(commonTokens);
+// console.log(commonIdentifiers);
 const commonUniqueIdentifiers = getUniqueIdentifiers(commonIdentifiers);
+findTransitives(commonArray);
 
 const customObjectArray = getFlatArray(CO_FILE_PATH);
 const coTokens = getTokens(customObjectArray);
@@ -18,6 +20,8 @@ const coIdentifiers = getIdentifiers(coTokens);
 const coUniqueIdentifiers = getUniqueIdentifiers(coIdentifiers);
 
 const intersectionArray = getIntersection(commonUniqueIdentifiers,coUniqueIdentifiers);
+
+console.log(intersectionArray);
 
 // console.log("Common Unique Identifiers",commonUniqueIdentifiers);
 // console.log("CO Unique Identifiers",coUniqueIdentifiers);
@@ -53,6 +57,31 @@ function getFlatArray(filePath){
     var arr = getFiles(filePath);
     //return flat array
     return _.flattenDeep(arr);
+
+}
+
+function findTransitives(flatArray){
+    var tokens = [];
+
+    flatArray.forEach(function(file){
+    
+        const content = fs.readFileSync(file,'utf-8');
+        // esprima.parseScript(file,{},function(node){
+        //     console.log(node.type);
+        // })
+        tokens.push(file,esprima.tokenize(content));
+
+    });
+    // console.log(tokens.length);
+    // for(i=0; i<tokens.length;i++){
+    //     for(j=0; j<tokens.length;j++){
+    //         console.log("TOKENS[j]",tokens[j]);
+    //         // if(_.intersectionBy(getIdentifiers(tokens[i]),getIdentifiers(tokens[j]),'value')){
+    //         //     console.log("TRUE");
+    //         // }
+    //     }
+    // }
+    
 
 }
 
@@ -129,6 +158,7 @@ function isReserved(tokenValue,reservedIdentifiers){
 }
 
 function getFilePaths(intersecArray){
+    //extract unique file paths from intersection array
     const filepathArray = _.uniqBy(intersecArray,function(obj){
         return obj.filepath;
     });
@@ -143,7 +173,12 @@ function getFilePaths(intersecArray){
 function copyFiles(filepaths,destination){
 
     filepaths.forEach(file => {
-        fs.copy(file, destination+file.substring(file.indexOf('/common/')+8));
+        fs.copy(file, destination+file.substring(file.indexOf('/common/')+8));//,file.lastIndexOf('/')
     })
 }
+
+function transitiveFinder(commonFilesArray){
+    
+}
+
 
