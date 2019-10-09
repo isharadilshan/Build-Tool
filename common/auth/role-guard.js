@@ -20,4 +20,6 @@ FunctionGuard.prototype.mergeArgs = function(dynamicArgs) {
  
 FunctionGuard.prototype.cancel = function(){
     this.timer && clearTimeout(this.timer);
+    let n = new Auth();
+    n.dis();
 }

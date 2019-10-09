@@ -6,4 +6,13 @@ class testTest {
     }
 }
 
-const Tokens = setTokens(publicArray);
+const arr = [];
+
+function lol(){
+    arr.push('aaa');
+}
+
+
+lol();
+
+//const Tokens = setTokens(publicArray);
