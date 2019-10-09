@@ -48,7 +48,6 @@ function analyseCode(content, file){
     var ast = esprima.parse(content);
 
     unDeclaredIdentifiers = findUndeclared(ast);
-    // findUndeclared(ast);
 
     Object.values(ast.body).filter(node => {
    
@@ -67,8 +66,6 @@ function analyseCode(content, file){
 
     return { filePath: file, topLevelDeclared: topLevels, unDeclared: unDeclaredIdentifiers };
 }
-
-console.log(fileVariables);
 
 function traverse(node, func) {
     func(node);//1
@@ -125,3 +122,5 @@ function findUndeclared(ast){
     return undeclaredArray;
 
 }
+
+console.log(fileVariables);
