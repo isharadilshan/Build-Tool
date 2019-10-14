@@ -28,3 +28,11 @@ Facade.Behaviors.Page.onLoad(function () {
         })
     );
 });
+
+function signInOut(){
+    console.log("idyuc");
+}
+
+function testoo(){
+    console.log();
+}

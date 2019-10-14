@@ -1,4 +1,6 @@
 const COMMON_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/common';
+const CO_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/custom-objects/$object1';
+const RESERVED_IDENTIFIERS = ['console','log','return','require','prototype','slice','Facade'];
 
 const esprima = require('esprima');
 const fs = require('fs-extra');
@@ -9,7 +11,7 @@ var fileVariables = [];
 
 flatArray.forEach(function(file){
     const content = fs.readFileSync(file,'utf-8');
-    console.log(file);
+    // console.log(file);
     fileVariables.push(analyseCode(content,file));
 
 });
@@ -67,13 +69,24 @@ function analyseCode(content, file){
     return { filePath: file, topLevelDeclared: topLevels, unDeclared: unDeclaredIdentifiers };
 }
 
+function isReserved(tokenValue,reservedIdentifiers){  
+    //return true if tokenValue equal with reserved identifier array
+    return reservedIdentifiers.find(el => el === tokenValue); 
+    // return reservedIdentifiers.indexOf(tokenValue) > -1;
+}
+
 function traverse(node, func) {
     func(node);//1
+    // var depth = 1;
+    // console.log(node);
     for (var key in node) { //2
+        // console.log(depth);
+        // console.log(node[key]);
         if (node.hasOwnProperty(key)) { //3
             var child = node[key];
-            if (typeof child === 'object' && child !== null) { //4
 
+            if (typeof child === 'object' && child !== null) { //4
+                //create a flag or something in the first recursive depth and pass it to the function
                 if (Array.isArray(child)) {
                     child.forEach(function(node) { //5
                         traverse(node, func);
@@ -118,9 +131,84 @@ function findUndeclared(ast){
         }
     });
 
-    console.log(undeclaredArray);
+    // console.log(undeclaredArray);
     return undeclaredArray;
 
 }
 
-console.log(fileVariables);
+// console.log(fileVariables);
+
+function findImports(fileVariables){
+    fileVariables.forEach(node => {
+        fileVariables.forEach(leaf => {
+            const insect = _.intersection(node.unDeclared,leaf.topLevelDeclared);
+            if(insect.length > 0){
+                if (node.imports === undefined) node.imports = [];
+                node.imports.push(leaf.filePath);
+            }
+        });
+    });
+}
+
+function getTokens(flatArray){
+
+    var tokens = [];
+
+    flatArray.forEach(function(file){
+    
+        const content = fs.readFileSync(file,'utf-8');
+        tokens.push(file,esprima.tokenize(content));
+
+    });
+    //return flat array with tokens
+    return _.flattenDeep(tokens);
+}
+
+function getIdentifiers(tokensWithFilePath){
+
+    var filteredTokens = [];
+
+    filteredTokens = tokensWithFilePath.filter(token => {
+        //filter tokens without default identifiers
+        return token.type === 'Identifier' && !isReserved(token.value,RESERVED_IDENTIFIERS);
+    });
+    return filteredTokens;
+}
+
+function getUniqueIdentifiers(filteredTokens){
+
+    const uniqueIdentifiers = _.uniqBy(filteredTokens,function(obj){
+        return obj.value;
+    });
+    //return unique identifiers
+    return uniqueIdentifiers;
+}
+
+function findExports(coUniqueIdentifiers){
+    console.log(coUniqueIdentifiers);
+}
+
+findImports(fileVariables);
+// console.log(fileVariables);
+
+const customObjectArray = getFlatArray(CO_FILE_PATH);
+const coTokens = getTokens(customObjectArray);
+const coIdentifiers = getIdentifiers(coTokens);
+const coUniqueIdentifiers = getUniqueIdentifiers(coIdentifiers);
+
+console.log(coUniqueIdentifiers);
+
+const copyArray = [];
+
+fileVariables.forEach(node => {
+    console.log("Hi");
+    const insect = _.intersection(node.topLevelDeclared,coUniqueIdentifiers);
+    if(insect.length > 0){
+        console.log("Hi");
+        copyArray.push(node.filePath+node.imports);
+    }
+
+});
+
+
+console.log(copyArray);

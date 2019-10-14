@@ -50,3 +50,7 @@ test.prototype.two = function(){
 class Auth{
     
 }
+
+function getTokens(){
+    
+}
