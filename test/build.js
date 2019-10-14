@@ -12,7 +12,6 @@ const commonTokens = getTokensWithFilePath(commonArray);
 const commonIdentifiers = getIdentifiers(commonTokens);
 // console.log(commonIdentifiers);
 const commonUniqueIdentifiers = getUniqueIdentifiers(commonIdentifiers);
-findTransitives(commonArray);
 
 const customObjectArray = getFlatArray(CO_FILE_PATH);
 const coTokens = getTokens(customObjectArray);
@@ -57,31 +56,6 @@ function getFlatArray(filePath){
     var arr = getFiles(filePath);
     //return flat array
     return _.flattenDeep(arr);
-
-}
-
-function findTransitives(flatArray){
-    var tokens = [];
-
-    flatArray.forEach(function(file){
-    
-        const content = fs.readFileSync(file,'utf-8');
-        // esprima.parseScript(file,{},function(node){
-        //     console.log(node.type);
-        // })
-        tokens.push(file,esprima.tokenize(content));
-
-    });
-    // console.log(tokens.length);
-    // for(i=0; i<tokens.length;i++){
-    //     for(j=0; j<tokens.length;j++){
-    //         console.log("TOKENS[j]",tokens[j]);
-    //         // if(_.intersectionBy(getIdentifiers(tokens[i]),getIdentifiers(tokens[j]),'value')){
-    //         //     console.log("TRUE");
-    //         // }
-    //     }
-    // }
-    
 
 }
 
@@ -177,8 +151,5 @@ function copyFiles(filepaths,destination){
     })
 }
 
-function transitiveFinder(commonFilesArray){
-    
-}
 
 
