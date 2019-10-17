@@ -28,3 +28,7 @@ Facade.Behaviors.Page.onLoad(function () {
         })
     );
 });
+
+var usrName = userName;
+
+signInOut();
