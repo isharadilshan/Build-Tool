@@ -1,5 +1,5 @@
 const COMMON_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/common';
-const CO_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/custom-objects/$object1';
+const CO_FILE_PATH = '/Users/imadhushanka/Documents/Build-Tool/custom-objects';
 const RESERVED_IDENTIFIERS = ['console','log','return','require','prototype','slice','Facade'];
 
 const esprima = require('esprima');
@@ -12,7 +12,7 @@ function getFiles(dir) {
     var all = fs.readdirSync(dir);
 
     // process each checking directories and saving files
-    return all.map(file => {
+    return _.flattenDeep(all.map(file => {
 
         // is a directory?
         if (fs.statSync(`${dir}/${file}`).isDirectory()) {
@@ -20,22 +20,13 @@ function getFiles(dir) {
             return getFiles(`${dir}/${file}`);
         }
         return `${dir}/${file}`;  
-    });
-
-}
-
-function getFlatArray(filePath){
-
-    var arr = getFiles(filePath);
-    //return flat array
-    return _.flattenDeep(arr);
+    })); 
 
 }
 
 function isReserved(tokenValue,reservedIdentifiers){  
     //return true if tokenValue equal with reserved identifier array
     return reservedIdentifiers.find(el => el === tokenValue); 
-    // return reservedIdentifiers.indexOf(tokenValue) > -1;
 }
 
 function getTokens(flatArray){
@@ -74,23 +65,19 @@ function getUniqueIdentifiers(filteredTokens){
 }
 
 function traverse(node, func) {
-    func(node);//1
-    // var depth = 1;
-    // console.log(node);
-    for (var key in node) { //2
-        // console.log(depth);
-        // console.log(node[key]);
-        if (node.hasOwnProperty(key)) { //3
+    func(node);
+    for (var key in node) {
+        if (node.hasOwnProperty(key)) {
             var child = node[key];
-
-            if (typeof child === 'object' && child !== null) { //4
-                //create a flag or something in the first recursive depth and pass it to the function
+            //check child node is an object or not,  null may refer as a null too
+            if (typeof child === 'object' && child !== null) {
+                //check child is a array or not
                 if (Array.isArray(child)) {
-                    child.forEach(function(node) { //5
+                    child.forEach(function(node) {
                         traverse(node, func);
                     });
                 } else {
-                    traverse(child, func); //6
+                    traverse(child, func);
                 }
             }
         }
@@ -103,17 +90,17 @@ function analyseCode(content, file){
     var unDeclaredIdentifiers = [];
     var ast = esprima.parse(content);
 
-    unDeclaredIdentifiers = findUndeclared(ast);
-    topLevelDeclaredIdentifiers = findTopLevelDeclared(ast);
+    unDeclaredIdentifiers = findUndeclared(ast.body);
+    topLevelDeclaredIdentifiers = findTopLevelDeclared(ast.body);
 
     return { filePath: file, topLevelDeclared: topLevelDeclaredIdentifiers, unDeclared: unDeclaredIdentifiers };
 }
 
-function findTopLevelDeclared(ast){
+function findTopLevelDeclared(astBody){
 
     var topLevelDeclaredIdentifiers = [];
 
-    Object.values(ast.body).filter(node => {
+    Object.values(astBody).filter(node => {
    
         if(node.type === 'ClassDeclaration' || node.type === 'FunctionDeclaration'){
 
@@ -131,7 +118,7 @@ function findTopLevelDeclared(ast){
     return topLevelDeclaredIdentifiers;
 }
 
-function findUndeclared(ast){
+function findUndeclared(astBody){
 
     var identifiersArray = {};
     var undeclaredArray = [];
@@ -142,7 +129,7 @@ function findUndeclared(ast){
         }
     };
 
-    traverse(ast.body, function(node){
+    traverse(astBody, function(node){
         if(node.type === 'ClassDeclaration'){
             addStatsEntry(node.id.name);
             identifiersArray[node.id.name].declarations=true;
@@ -163,32 +150,32 @@ function findUndeclared(ast){
         }
     });
 
-    // console.log(undeclaredArray);
     return undeclaredArray;
 
 }
 
-function findImports(fileVariables){
-    fileVariables.forEach(node => {
-        fileVariables.forEach(leaf => {
-            const insect = _.intersection(node.unDeclared,leaf.topLevelDeclared);
+function findImports(files){
+    let keyArray = Object.keys(files);
+    keyArray.forEach(node => {
+        keyArray.forEach(leaf => {
+            const insect = _.intersection(files[node].unDeclared,files[leaf].topLevelDeclared);
             if(insect.length > 0){
-                if (node.imports === undefined) node.imports = [];
-                node.imports.push(leaf.filePath);
+                if (files[node].imports === undefined) files[node].imports = [];
+                files[node].imports.push(leaf);
             }
         });
     });
 }
 
 function manageCommonFiles(commonFilePath){
-
-    const flatArray = getFlatArray(commonFilePath);
-    var fileVariables = [];
+    var fileVariables = {};
+    const flatArray = getFiles(commonFilePath);
 
     flatArray.forEach(function(file){
         const content = fs.readFileSync(file,'utf-8');
         // console.log(file);
-        fileVariables.push(analyseCode(content,file));
+        fileVariables[file] = analyseCode(content,file);
+        //fileVariables.push(analyseCode(content,file));
     });
 
     findImports(fileVariables);
@@ -196,32 +183,76 @@ function manageCommonFiles(commonFilePath){
     return fileVariables;
 }
 
-
-const commonFileVariables = manageCommonFiles(COMMON_FILE_PATH);
-
-const customObjectArray = getFlatArray(CO_FILE_PATH);
-const coTokens = getTokens(customObjectArray);
-const coIdentifiers = getIdentifiers(coTokens,RESERVED_IDENTIFIERS);
-const coUniqueIdentifiers = getUniqueIdentifiers(coIdentifiers);
-
-// console.log("COMMON FILE VARIABLES",commonFileVariables);
-// console.log("CUSTOM OBJECTS VARIABLES",coUniqueIdentifiers);
-
-var copyArray = [];
-
-commonFileVariables.forEach(node => {
-
-    const insect = _.intersection(node.topLevelDeclared,coUniqueIdentifiers);
-    if(insect.length > 0){
-        if(!node.imports){
-            copyArray.push(node.filePath);
-        }else{
-            copyArray.push(node.filePath,node.imports);
-        }
+function findRecursivelyImports(files) {
+   
+    Object.keys(files).forEach(key => {
         
-    }
+        if(files[key].imports){
+            files[key].transitiveImports = []; //If there is no imports why should have transitive imports ??
+            // transitiveImports = this[key].imports;
+            findTransitiveImports(files[key].imports,files[key].transitiveImports,files);
+        }
+    });
 
-});
+    return files;
+}
+
+function findTransitiveImports(importArr, transitiveArr, fileVarArr){
+    importArr.forEach(arrItem => {
+        transitiveArr.push(arrItem);
+        if(fileVarArr[arrItem].imports){
+            findTransitiveImports(fileVarArr[arrItem].imports,transitiveArr, fileVarArr);
+        }
+    });
+}
 
 
-console.log(copyArray);
+function findCopyArray(coFilePath,commonFiles){
+
+    var copyArray = [];
+    const customObjectArray = getFiles(coFilePath);
+    const coTokens = getTokens(customObjectArray);
+    const coIdentifiers = getIdentifiers(coTokens,RESERVED_IDENTIFIERS);
+    const coUniqueIdentifiers = getUniqueIdentifiers(coIdentifiers);
+
+    Object.keys(commonFiles).forEach(key => {
+
+        const insect = _.intersection(commonFiles[key].topLevelDeclared,coUniqueIdentifiers);
+        if(insect.length > 0){
+            if(!commonFiles[key].imports){
+                copyArray.push(commonFiles[key].filePath);
+            }else{
+                copyArray.push(commonFiles[key].transitiveImports);
+            }
+        }
+    });
+
+    return copyArray;
+}
+
+function getCustomObjects(coDirectory){
+    var all = fs.readdirSync(coDirectory);
+
+    return all.map(file => {
+        if (fs.statSync(`${coDirectory}/${file}`).isDirectory()) {
+            // recursively scan for files
+            return `${coDirectory}/${file}`;
+        }
+    
+    });
+}
+
+function driverFunction(commonFilePaths,customObjectFilePaths){
+
+    const commonFileVariables = manageCommonFiles(commonFilePaths);
+    const filesAfterFindTransitiveImport = findRecursivelyImports(commonFileVariables);
+    var customObjectsArr = getCustomObjects(customObjectFilePaths);
+
+    customObjectsArr.forEach(obj => {
+        console.log(obj,findCopyArray(obj,filesAfterFindTransitiveImport));
+    })
+}
+
+driverFunction(COMMON_FILE_PATH,CO_FILE_PATH);
+
+
