@@ -143,9 +143,9 @@ function findUndeclared(astBody){
             });
         }else if(node.type === 'CallExpression' && node.callee.type === 'Identifier'){
             addStatsEntry(node.callee.name);
-            identifiersArray[node.callee.name].calls++;
-            if(!identifiersArray[node.callee.name].declarations){
-                undeclaredArray.push(node.callee.name);
+            identifiersArray[node.callee.name].calls++;//check whether this is returns only undeclaed ones or not and whether have to check call times too
+            if(!identifiersArray[node.callee.name].declarations){//&&identifiersArray[node.callee.name].calls>0
+                undeclaredArray.push(node.callee.name);//push only undeclared identifiers to array
             }
         }
     });
@@ -188,8 +188,7 @@ function findRecursivelyImports(files) {
     Object.keys(files).forEach(key => {
         
         if(files[key].imports){
-            files[key].transitiveImports = []; //If there is no imports why should have transitive imports ??
-            // transitiveImports = this[key].imports;
+            files[key].transitiveImports = []; //If there is no imports why we should have transitive imports ??
             findTransitiveImports(files[key].imports,files[key].transitiveImports,files);
         }
     });
@@ -217,12 +216,12 @@ function findCopyArray(coFilePath,commonFiles){
 
     Object.keys(commonFiles).forEach(key => {
 
-        const insect = _.intersection(commonFiles[key].topLevelDeclared,coUniqueIdentifiers);
+        const insect = _.intersection(coUniqueIdentifiers,commonFiles[key].topLevelDeclared);
         if(insect.length > 0){
             if(!commonFiles[key].imports){
                 copyArray.push(commonFiles[key].filePath);
             }else{
-                copyArray.push(commonFiles[key].transitiveImports);
+                copyArray.push(commonFiles[key].transitiveImports,commonFiles[key].filePath);
             }
         }
     });
