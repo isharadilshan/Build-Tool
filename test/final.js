@@ -6,7 +6,7 @@ const esprima = require('esprima');
 const fs = require('fs-extra');
 const _ = require('lodash');
 
-function getFiles(dir) {
+function getFiles(dir) {//recursively find files inside a given folder
     
     if(dir === undefined){
         return [];
@@ -26,12 +26,12 @@ function getFiles(dir) {
     })); 
 }
 
-function isReserved(tokenValue,reservedIdentifiers){  
+function isReserved(tokenValue,reservedIdentifiers){//check whether token is default identifier or not
     //return true if tokenValue equal with reserved identifier array
     return reservedIdentifiers.find(el => el === tokenValue); 
 }
 
-function getTokens(fileArray){
+function getTokens(fileArray){//get all tokens from files inside in one custom object folder
 
     var tokens = [];
 
@@ -46,7 +46,7 @@ function getTokens(fileArray){
     return _.flattenDeep(tokens);
 }
 
-function getIdentifiers(tokens,reservedIdentifiers){
+function getIdentifiers(tokens,reservedIdentifiers){//filter unique identifiers except reserved by given set of tokens
 
     var filteredTokens = [];
 
@@ -108,12 +108,12 @@ function findTopLevelDeclared(astBody){//find top level declared functions, cons
     return topLevelDeclaredIdentifiers;
 }
 
-function findUndeclared(astBody){//check again
+function findUndeclared(astBody){//find undeclared identifiers of given file
 
     var identifiersArray = {};
     var undeclaredArray = [];
 
-    var addStatsEntry = function(identifier){//function(identifier => {})
+    var addStatsEntry = function(identifier){
         if(!identifiersArray[identifier]){
             identifiersArray[identifier] = {calls:0, declarations:false };
         }
@@ -158,7 +158,7 @@ function analyseFileContent(file){//analyse the content of each and every file i
     return { filePath: file, topLevelDeclared: topLevelDeclaredIdentifiers, unDeclared: unDeclaredIdentifiers };//return object with file data
 }
 
-function findFileImports(fileContents){
+function findFileImports(fileContents){//check whether any common file import content with other common files
     var keyArray = Object.keys(fileContents);
     keyArray.forEach(fileObj => {
         keyArray.forEach(anyFileObj => {
@@ -171,7 +171,7 @@ function findFileImports(fileContents){
     });
 }
 
-function findTransitiveImports(fileContentsArray) {
+function findTransitiveImports(fileContentsArray) {//find whether common files have transitive imports with other common files
    
     Object.keys(fileContentsArray).forEach(key => {
         
@@ -184,7 +184,7 @@ function findTransitiveImports(fileContentsArray) {
     return fileContentsArray;
 }
 
-function findTransitiveRecursively(importArr, transitiveArr, fileContentArr){
+function findTransitiveRecursively(importArr, transitiveArr, fileContentArr){//recursive function to find transitive imports
     importArr.forEach(arrItem => {
         transitiveArr.push(arrItem);
         if(fileContentArr[arrItem].imports){//If there is no imports why we should have transitive imports ??
@@ -214,7 +214,7 @@ function manageCommonFiles(commonFolderPath){
     return fileContentsArray;
 }
 
-function findCopyFilesArray(coFolderPath,commonFilesContents){
+function findCopyFiles(coFolderPath,commonFilesContents){//get array of common files which are used by one custom object to copy
 
     var copyFilesArray = [];
     const filesInsideOneCustomObject = getFiles(coFolderPath);//get all the files inside a custom object
@@ -246,7 +246,7 @@ function findCopyFilesArray(coFolderPath,commonFilesContents){
     return copyFilesArray;
 }
 
-function getFolderPathsOfCustomObjects(coDirectory){//clarify this one
+function getFolderPathsOfCustomObjects(coDirectory){//return only custom object directories
 
     var all = fs.readdirSync(coDirectory);
 
@@ -257,7 +257,7 @@ function getFolderPathsOfCustomObjects(coDirectory){//clarify this one
     });
 }
 
-function copyFilesToDestination(copyFilePaths, customObjectFolderPath){
+function copyFilesToDestination(copyFilePaths, customObjectFolderPath){//copy relevant common files to custom object directories 
     copyFilePaths.forEach(file => {
         const copyPath = customObjectFolderPath+'/include'+file.substring(file.lastIndexOf('/'));
         // const copyPath = customObjectFolderPath+'includes/'+file.substring(file.indexOf('/common/')+8);
@@ -276,7 +276,7 @@ function driverFunction(commonFolderPath,customObjectsFolderPath){
     const customObjectsArray = getFolderPathsOfCustomObjects(customObjectsFolderPath);
 
     customObjectsArray.forEach(obj => {
-        const copyFilesArray = findCopyFilesArray(obj,commonFilesContentsArray);
+        const copyFilesArray = findCopyFiles(obj,commonFilesContentsArray);
         const filteredCopyFilesArray =  _.uniq(_.flattenDeep(copyFilesArray));
         copyFilesToDestination(filteredCopyFilesArray,obj);
         // console.log(obj,filteredCopyFilesArray,filteredCopyFilesArray.length);
