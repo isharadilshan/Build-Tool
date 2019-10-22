@@ -7,6 +7,7 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 
 function getFiles(dir) {
+    
     if(dir === undefined){
         return [];
     }
@@ -259,7 +260,12 @@ function getFolderPathsOfCustomObjects(coDirectory){//clarify this one
 function copyFilesToDestination(copyFilePaths, customObjectFolderPath){
     copyFilePaths.forEach(file => {
         const copyPath = customObjectFolderPath+'/include'+file.substring(file.lastIndexOf('/'));
-        fs.copyFileSync(file, copyPath);//,file.lastIndexOf('/')
+        // const copyPath = customObjectFolderPath+'includes/'+file.substring(file.indexOf('/common/')+8);
+        fs.copy(file, copyPath, err => {
+            if (err) return console.error(err)
+          
+            console.log('success!')
+          });//,file.lastIndexOf('/')
         //fs.copyFileSync
     })
 }
@@ -272,8 +278,8 @@ function driverFunction(commonFolderPath,customObjectsFolderPath){
     customObjectsArray.forEach(obj => {
         const copyFilesArray = findCopyFilesArray(obj,commonFilesContentsArray);
         const filteredCopyFilesArray =  _.uniq(_.flattenDeep(copyFilesArray));
-        // copyFilesToDestination(filteredCopyFilesArray.splice(-1,1),obj);
-        console.log(obj,filteredCopyFilesArray,filteredCopyFilesArray.length);
+        copyFilesToDestination(filteredCopyFilesArray,obj);
+        // console.log(obj,filteredCopyFilesArray,filteredCopyFilesArray.length);
     });
 }
 
