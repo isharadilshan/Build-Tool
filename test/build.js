@@ -9,6 +9,7 @@ const _ = require('lodash');
 
 const commonArray = getFlatArray(COMMON_FILE_PATH);
 const commonTokens = getTokensWithFilePath(commonArray);
+// console.log(commonTokens);
 const commonIdentifiers = getIdentifiers(commonTokens);
 // console.log(commonIdentifiers);
 const commonUniqueIdentifiers = getUniqueIdentifiers(commonIdentifiers);
@@ -20,7 +21,7 @@ const coUniqueIdentifiers = getUniqueIdentifiers(coIdentifiers);
 
 const intersectionArray = getIntersection(commonUniqueIdentifiers,coUniqueIdentifiers);
 
-console.log(intersectionArray);
+// console.log(intersectionArray);
 
 // console.log("Common Unique Identifiers",commonUniqueIdentifiers);
 // console.log("CO Unique Identifiers",coUniqueIdentifiers);
@@ -69,6 +70,7 @@ function getTokens(flatArray){
         tokens.push(file,esprima.tokenize(content));
 
     });
+    console.log(tokens);
     //return flat array with tokens
     return _.flattenDeep(tokens);
 }
@@ -80,6 +82,7 @@ function getTokensWithFilePath(flatArray){
     flatArray.forEach(function(file){
     
         const content = fs.readFileSync(file,'utf-8');
+        console.log(esprima.tokenize(content));
         tokens.push(file,esprima.tokenize(content));
 
     });

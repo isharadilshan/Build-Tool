@@ -214,6 +214,11 @@ function manageCommonFiles(commonFolderPath){
     return fileContentsArray;
 }
 
+
+
+
+
+
 function findCopyFiles(coFolderPath,commonFilesContents){//get array of common files which are used by one custom object to copy
 
     var copyFilesArray = [];
