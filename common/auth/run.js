@@ -15,6 +15,6 @@ const util = require('util');
 
 var files = glob.sync(
     // COMMON_FILE_PATH+'/src/!fef',//then, exclude files
-    COMMON_FILE_PATH + 'src/{*.js,!(fef)/**/*.js}');
+    COMMON_FILE_PATH + '/src/{*.js,!(fef)/**/*.js}');
 
   console.log(files);
