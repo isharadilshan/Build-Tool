@@ -1,20 +1,7 @@
-class testTest {
-    constructor(){}
-
-    get(){
-        return 'test';
+function foo(a){
+    if(a>0){
+        return a+1;
+    }else{
+        return a-2;
     }
 }
-
-const arr = [];
-
-function lol(){
-    arr.push('aaa');
-}
-
-
-lol();
-
-//const Tokens = setTokens(publicArray);
-
-const userName = "Ishara Dilshan";
