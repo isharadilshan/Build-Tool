@@ -60,7 +60,7 @@ const Builder = {
      * analyse all common files and update commonFileObjectsArr global array
      */
     analyseCommonFiles: function (){
-
+        ///
         const commonFilesArr = glob.sync(Config.SRC_FOLDER + '/src/{*.js,!(fef)/**/*.js}');//retrieve all .js except files inside fef folder
         
         commonFilesArr.forEach(file => {
@@ -107,7 +107,6 @@ const Builder = {
         }
 
         declarations = Builder.findDeclaration(ast.body);
-        console.log(file,declarations.undeclared);
 
         return { filepath: file, declared: declarations.declared , undeclared: declarations.undeclared};
 
@@ -295,14 +294,16 @@ const Builder = {
 
         copyFilesArr.forEach(file => {
 
-            var targetFile = path.join(targetFolder,file.substring(file.lastIndexOf('/')));
+            var lastDir = file.split('/');
+            lastDir = lastDir[lastDir.length-2];
+            var targetFile = path.join(targetFolder,lastDir,file.substring(file.lastIndexOf('/')));
             try{
                 fs.copyFileSync(file, targetFile);
             }catch (error){
                 throw new Error(`Cannot copy file to ${targetFile}.`);
             }
             
-            const filePathRelative = path.join(Config.COMMON_FOLDER_NAME, file.substring(file.lastIndexOf('/')));//get relative file path from includes folder
+            const filePathRelative = path.join(Config.COMMON_FOLDER_NAME, lastDir, file.substring(file.lastIndexOf('/')));//get relative file path from includes folder
         
             if (-1 === includesContent.includes.findIndex(el => el === filePathRelative)) {//check if file exists in includes file, if not append
                 includesContent.includes.unshift(filePathRelative);
