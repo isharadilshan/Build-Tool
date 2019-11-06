@@ -296,7 +296,12 @@ const Builder = {
 
             var lastDir = file.split('/');
             lastDir = lastDir[lastDir.length-2];
-            var targetFile = path.join(targetFolder,lastDir,file.substring(file.lastIndexOf('/')));
+
+            var targetSubFolder = path.join(targetFolder,lastDir);
+            rimraf.sync(targetSubFolder);//remove existing folder
+            fs.mkdirSync(targetSubFolder);
+            
+            var targetFile = path.join(targetFolder,lastDir, file.substring(file.lastIndexOf('/')));
             try{
                 fs.copyFileSync(file, targetFile);
             }catch (error){
