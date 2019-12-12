@@ -10,7 +10,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/test/final.js"
+            "program": "${workspaceFolder}/test/build4.js"
         }
     ]
 }

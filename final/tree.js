@@ -421,7 +421,5 @@ const Log = {
     }
 }
 
-Builder.archive();
-
-// module.exports = { Builder };
+module.exports = { Builder };
 
